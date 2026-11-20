@@ -1,3 +1,4 @@
+
 name: Build Retro Cassette APK
 
 on:
@@ -9,6 +10,7 @@ permissions:
 jobs:
   build-android:
     runs-on: ubuntu-latest
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
@@ -16,11 +18,15 @@ jobs:
       - name: Extract Retro Cassette source
         shell: bash
         run: |
-          test -f retro-cassette-source.zip.part00 || { echo "Upload retro-cassette-source.zip.part00 to the repository root first."; exit 1; }
-          test -f retro-cassette-source.zip.part01 || { echo "Upload retro-cassette-source.zip.part01 to the repository root first."; exit 1; }
+          test -f retro-cassette-source.zip.part00 || { echo "Missing ZIP part 00"; exit 1; }
+          test -f retro-cassette-source.zip.part01 || { echo "Missing ZIP part 01"; exit 1; }
+
           cat retro-cassette-source.zip.part00 retro-cassette-source.zip.part01 > retro-cassette-source.zip
           unzip -q retro-cassette-source.zip -d source
+
           test -f source/Retro-Cassette/gradlew
+
+          sed -i 's/rootProject.name = "Retro Cassette"/rootProject.name = "Retro-Cassette"/' source/Retro-Cassette/settings.gradle.kts
 
       - name: Set up Java 21
         uses: actions/setup-java@v5
@@ -35,16 +41,20 @@ jobs:
         run: |
           if [ ! -f core/common/build.gradle.kts ]; then
             rm -rf core upstream-meta
+
             git init upstream-meta
             git -C upstream-meta remote add origin https://github.com/maxrave-dev/SimpMusic.git
             git -C upstream-meta fetch --depth=1 origin f78a4fd6da9680e5771f4763194d2895d26914fd
+
             CORE_SHA=$(git -C upstream-meta ls-tree FETCH_HEAD core | awk '{print $3}')
             test -n "$CORE_SHA"
+
             git init core
             git -C core remote add origin https://github.com/maxrave-dev/core.git
             git -C core fetch --depth=1 origin "$CORE_SHA"
             git -C core checkout --detach FETCH_HEAD
           fi
+
           test -f core/common/build.gradle.kts
 
       - name: Configure optional integration credentials
@@ -59,7 +69,7 @@ jobs:
           DISCORD_CLIENT_ID=
           PROPERTIES
 
-      - name: Build full-feature debug APK
+      - name: Build debug APK
         working-directory: source/Retro-Cassette
         shell: bash
         run: |
