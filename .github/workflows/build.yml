@@ -28,6 +28,8 @@ jobs:
 
           sed -i 's/rootProject.name = "Retro Cassette"/rootProject.name = "Retro-Cassette"/' source/Retro-Cassette/settings.gradle.kts
 
+          sed -i '/generateResClass = always/a\    packageOfResClass = "simpmusic.composeapp.generated.resources"' source/Retro-Cassette/composeApp/build.gradle.kts
+
       - name: Set up Java 21
         uses: actions/setup-java@v5
         with:
